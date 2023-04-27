@@ -26,7 +26,12 @@ public class GUI {
     private double  relayHysteresis  = -100_000;         // user are to check for initialization
     private int     processType = 0;                     // 0 - OFF,  1 - beam, 2 - upper tank, 3 - lower tank
     private boolean running = true; 
-	
+
+    // Controller parameters
+    private double K;
+    private double Ti;
+    private double Td;
+
     ModeMonitor modeMon;
     
     public GUI() {
@@ -217,16 +222,29 @@ public class GUI {
         frame.setVisible(true);
     }
 
+    public void updateState(double K, double Ti, double Td) {
+	this.K = K;
+	this.Ti = Ti;
+	this.Td = Td;
+	String KText = String.format("%.2f",K);
+	String TiText = String.format("%.2f", Ti);
+        String TdText = String.format("%.2f", Td);
+	kField.setText(KText);
+	tiField.setText(TiText);
+	tdField.setText(TdText);
+    }
+
     public void setModeMon(ModeMonitor modeMon) {
 	this.modeMon = modeMon;
     }
-	
-
+    
+    public enum Mode{
+	OFF, BEAM, UPPERTANK, LOWERTANK;
+    }	
+    
     public static void main(String[] args) {
         GUI gui = new GUI();
     }
 
-    public enum Mode{
-	OFF, BEAM, UPPERTANK, LOWERTANK;
-    }
+
 }
