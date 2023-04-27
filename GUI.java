@@ -4,94 +4,99 @@ import java.awt.event.*;
 import javax.swing.border.LineBorder;
 
 public class GUI {
+    
     private JFrame frame;
+    
     private JTextField kField;
     private JTextField tiField;
     private JTextField tdField;
-    
-    // To be attached with actionlisteners
     private JTextField hysteresisField;		
     private JTextField amplitudeField;
+
     private JButton startButton;
     private JButton stopButton;
     private JButton beamButton;
     private JButton tank1Button;
     private JButton tank2Button;
     
-    //Attributes to be sent to Regul.
-    private double relayAmp = 0;
-    private double relayHysteresis = 0;
-    private int processType = 0; // 1, 2, 3 (beam, upper tank, lower tank)
+    // Attributes to be sent to Regul.
+    private double  relayAmp         = -100_000;         // Arbitrarily unlikely values are used
+    private double  relayHysteresis  = -100_000;         // to check for initialization
+    private int     processType = 0;                        // 1-beam, 2 - upper tank, 3 - lower tank
+    private boolean running = true; 
 	
-	// Public gui should take parameters that correspond to the objects to be used in the project
+	//public GUI(Regul regul, PIPParameters PIP, etc) {
+        // this.regul = regul;
+        // this.PIP = PIP;
+    
     public GUI() {
 
         // create the frame
-        frame = new JFrame("Tune PID Controller");
+        frame = new JFrame("PID Control Autotuner");
         frame.setSize(1200, 800);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         
-
         // create the text fields for the controller parameters
-        kField = new JTextField("0.0", 10);
+        kField  = new JTextField("0.0", 10);
         tiField = new JTextField("0.0", 10);
         tdField = new JTextField("0.0", 10);
 
         // Create the text fields for the relay
-        hysteresisField = new JTextField("0.0", 10);
-        amplitudeField = new JTextField("0.0", 10);
+        hysteresisField = new JTextField("NULL", 10);
+        amplitudeField  = new JTextField("NULL", 10);
 
-        // create the start button
+        // Create the relevant buttons
         startButton = new JButton("Start");
-        stopButton = new JButton("Stop");
-        beamButton = new JButton("Beam");
+        stopButton  = new JButton("Stop");
+        beamButton  = new JButton("Beam");
         tank1Button = new JButton("Upper Tank");
         tank2Button = new JButton("Lower Tank");
 
-        
+        // Temporary placeholder for plotting tool in control department toolbox
         ImageIcon sineIcon = new ImageIcon("sineWave.png");
         JLabel graphIcon = new JLabel(sineIcon);
         
-
-        // create the panel and add components to it
+        // Create a controllerpanel that is to be added to Borderlayout.NORTH
         JPanel controllerPanel = new JPanel(new GridLayout(4, 5, 10, 10));
-
-        JLabel descrContr = new JLabel("Controller Parameters");
-        descrContr.setFont(new Font("Serif", Font.BOLD, 14));
-        JLabel descrRelay = new JLabel("Relay Parameters");
-        descrRelay.setFont(new Font("Serif", Font.BOLD, 14));
-
-        
-
         controllerPanel.setBackground(Color.lightGray);
 
+        // Create the textfield descriptions and make the letter larger
+        JLabel descrContr = new JLabel("Controller Parameters");
+        JLabel descrRelay = new JLabel("Relay Parameters");
+        descrContr.setFont(new Font("Serif", Font.BOLD, 14));
+        descrRelay.setFont(new Font("Serif", Font.BOLD, 14));
+
+        // Add 5 components to the first row of the control pannel
         controllerPanel.add(new JLabel("FRTN01"));
         controllerPanel.add(descrContr);
-        controllerPanel.add(new JLabel()); // Add a blank label to take up the second cell
+        controllerPanel.add(new JLabel()); 
         controllerPanel.add(descrRelay);
         controllerPanel.add(new JLabel());
-
+        
+        // Add 5 components to the secound row of the control pannel
         controllerPanel.add(new JLabel("Real-time Systems"));
         controllerPanel.add(new JLabel("K:"));
         controllerPanel.add(kField);
         controllerPanel.add(new JLabel("Hysteresis:"));
         controllerPanel.add(hysteresisField);
         
+        // Add 5 components to the third row of the control pannel
         controllerPanel.add(new JLabel("Project - PID Autotuner"));
         controllerPanel.add(new JLabel("Ti:"));
         controllerPanel.add(tiField);
         controllerPanel.add(new JLabel("Amplitude:"));
         controllerPanel.add(amplitudeField);
         
+        // Add 5 components to the fourth row of the control pannel
         controllerPanel.add(new JLabel());
         controllerPanel.add(new JLabel("Td:"));
         controllerPanel.add(tdField);
         controllerPanel.add(new JLabel());
         controllerPanel.add(new JLabel());
 
-
+        // Create a relaypanel that is to be added to Borderlayout.NORTH
+        // It will contain both textfields and relevant buttons
         JPanel relayPanel = new JPanel(new GridLayout(7, 1, 10, 10));
-
         relayPanel.setBackground(Color.lightGray);
         relayPanel.setPreferredSize(new Dimension(200, 300));
         
@@ -105,12 +110,11 @@ public class GUI {
         relayPanel.add(beamButton);
         relayPanel.add(tank1Button);
         relayPanel.add(tank2Button);
-       
         
+        // Ad the panels to the JFrame
         frame.add(controllerPanel, BorderLayout.NORTH);
         frame.add(relayPanel, BorderLayout.WEST);
-        //frame.add(iconLabel, BorderLayout.SOUTH);
-        frame.add(graphIcon, BorderLayout.EAST);
+        frame.add(graphIcon, BorderLayout.EAST); // To be replaced with the actual graph
         
 		// -----------------RelayListeners----------------------
         hysteresisField.addActionListener(new ActionListener() {
@@ -164,30 +168,43 @@ public class GUI {
         // add an action listener to the start button
         startButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
+
                 // Check is starting conditions have been met
-                if (relayAmp != 0 && relayHysteresis != 0 && processType != 0 ) {
+                if (relayAmp != -100_000 && relayHysteresis != -100_000 && processType != 0 && running) {
 					startButton.setBackground(new Color(144, 238, 144));
 					// here the regul method should be initialized with the regul.init(method);
-				} else {
-					startButton.setBackground(Color.RED);
+
+				} else if (!running) {
+                    // Do nothing
+
+                } else {
+                    // starting criteria not fullfilled
+                    startButton.setBackground(Color.RED);
+                    JOptionPane.showMessageDialog(frame, "Cannot start the process without the required information." +
+                                                        "\nPlease make sure to provide the hysteresis value, amplitude value, " +
+                                                        "\nand process type before starting. Please try again.", "Warning", JOptionPane.INFORMATION_MESSAGE);    
 				}
             }
         });
-        
-              // add an action listener to the stop button
-        tank1Button.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                // Set attribute
-            }
-        });
-              // add an action listener to the stop button
-        tank2Button.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                // Set attribute
-            }
-        });
-        
 
+        // add an action listener to the stop button
+        stopButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                // regul.stop();
+                relayAmp = 0;
+                relayHysteresis = 0;
+                running = false;
+                startButton.setBackground(Color.RED);
+                stopButton.setBackground(Color.RED);
+                beamButton.setBackground(Color.RED);
+                tank1Button.setBackground(Color.RED);
+                tank2Button.setBackground(Color.RED);
+                JOptionPane.showMessageDialog(frame, "Autotuning stopped: User pressed stop button.\n" +
+                                                     "Please restart the program.", "Warning", JOptionPane.INFORMATION_MESSAGE);    
+        
+            }
+        });
+        
         frame.setVisible(true);
     }
 
