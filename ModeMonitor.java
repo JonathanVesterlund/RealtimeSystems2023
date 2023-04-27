@@ -5,6 +5,9 @@
  */
 public class ModeMonitor {
 
+    private double relayHysteresis;
+    private double relayAmp;
+    private int processType;
     private Mode mode = Mode.OFF;
 
     /**
@@ -13,8 +16,23 @@ public class ModeMonitor {
      * @param:
      *     newMode (Mode): Sets the new mode to be newMode
      */
-    public synchronized void setMode(Mode newMode) {
-        mode = newMode;
+    public synchronized void setMode(double relayAmp, double relayHysteresis, int processType) {
+        
+        this.relayHysteresis = relayHysteresis;
+        this.relayAmp=relayAmp;
+        if(processType ==0){
+	    mode = Mode.OFF;
+	}
+	else if(processType == 1){
+	    mode = Mode.BEAM;
+	}
+	else if(processType == 2){
+	    mode = Mode.UPPERTANK;
+	}
+	else{
+	    mode = Mode.LOWERTANK;
+	}
+
     }
 
     /**
@@ -26,16 +44,16 @@ public class ModeMonitor {
     public synchronized Mode getMode() {
         return mode;
     }
-
-
-    /**
-     *  enum Mode:
-     *
-     * Mode enumerator
-     */
-    public enum Mode {
-        // The enum values are OFF = 0, BEAM = 1, TANK_UPPER = 2; TANK_LOWER=3;
-        OFF, BEAM;
-        // TANK_UPPER, TANK_LOWER;  
+   
+    public synchronized double  getHysteresis() {
+        return relayHysteresis;
     }
+   
+
+    public synchronized double getrelayAmp() {
+        return relayAmp;
+    }
+  public enum Mode{
+      OFF, BEAM, UPPERTANK, LOWERTANK;
+  }
 }

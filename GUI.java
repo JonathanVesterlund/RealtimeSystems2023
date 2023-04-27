@@ -13,6 +13,8 @@ public class GUI {
     private JTextField hysteresisField;		
     private JTextField amplitudeField;
 
+    private Mode mode;
+
     private JButton startButton;
     private JButton stopButton;
     private JButton beamButton;
@@ -20,14 +22,12 @@ public class GUI {
     private JButton tank2Button;
     
     // Attributes to be sent to Regul.
-    private double  relayAmp         = -100_000;         // Arbitrarily unlikely values are used
-    private double  relayHysteresis  = -100_000;         // to check for initialization
-    private int     processType = 0;                        // 1-beam, 2 - upper tank, 3 - lower tank
+    private double  relayAmp         = -100_000;         // Arbitrary values unlikely to be chosen by the
+    private double  relayHysteresis  = -100_000;         // user are to check for initialization
+    private int     processType = 0;                     // 0 - OFF,  1 - beam, 2 - upper tank, 3 - lower tank
     private boolean running = true; 
 	
-	//public GUI(Regul regul, PIPParameters PIP, etc) {
-        // this.regul = regul;
-        // this.PIP = PIP;
+    ModeMonitor modeMon;
     
     public GUI() {
 
@@ -137,7 +137,8 @@ public class GUI {
         
         beamButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                processType = 1;
+		processType = 1;
+               
                 beamButton.setBackground(new Color(144, 238, 144));
                 tank1Button.setBackground(Color.LIGHT_GRAY);
                 tank2Button.setBackground(Color.LIGHT_GRAY);
@@ -147,7 +148,8 @@ public class GUI {
         
         tank1Button.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                processType = 2;
+		processType = 2;
+                
                 beamButton.setBackground(Color.LIGHT_GRAY);
                 tank1Button.setBackground(new Color(144, 238, 144));
                 tank2Button.setBackground(Color.LIGHT_GRAY);
@@ -157,7 +159,7 @@ public class GUI {
         
         tank2Button.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                processType = 3;
+		processType = 3;
                 beamButton.setBackground(Color.LIGHT_GRAY);
                 tank1Button.setBackground(Color.LIGHT_GRAY);
                 tank2Button.setBackground(new Color(144, 238, 144));
@@ -169,10 +171,12 @@ public class GUI {
         startButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
 
-                // Check is starting conditions have been met
+                // Check if starting conditions have been met
                 if (relayAmp != -100_000 && relayHysteresis != -100_000 && processType != 0 && running) {
 					startButton.setBackground(new Color(144, 238, 144));
-					// here the regul method should be initialized with the regul.init(method);
+					// The modeMonitor is initialized with the values given
+					modeMon.setMode(relayAmp, relayHysteresis, processType);
+			        
 
 				} else if (!running) {
                     // Do nothing
@@ -194,7 +198,12 @@ public class GUI {
                 relayAmp = 0;
                 relayHysteresis = 0;
                 running = false;
-                startButton.setBackground(Color.RED);
+
+	        processType = 0;
+
+		modeMon.setMode(relayAmp, relayHysteresis, processType);
+
+		startButton.setBackground(Color.RED);
                 stopButton.setBackground(Color.RED);
                 beamButton.setBackground(Color.RED);
                 tank1Button.setBackground(Color.RED);
@@ -208,7 +217,16 @@ public class GUI {
         frame.setVisible(true);
     }
 
+    public void setModeMon(ModeMonitor modeMon) {
+	this.modeMon = modeMon;
+    }
+	
+
     public static void main(String[] args) {
         GUI gui = new GUI();
+    }
+
+    public enum Mode{
+	OFF, BEAM, UPPERTANK, LOWERTANK;
     }
 }
